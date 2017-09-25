@@ -7,12 +7,12 @@ const webpack = require('webpack');
 
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 // Create multiple instances
-const extractCSS = new ExtractTextPlugin("a.css");
-const extractSASS = new ExtractTextPlugin("b.css");
+const extractCSS = new ExtractTextPlugin({filename:'[name][id]a.css',allChunks: true});
+const extractSCSS = new ExtractTextPlugin({filename:'[name][id]b.css',allChunks: true});
 
 module.exports = {
     entry: {
-        app: './src/app',
+        app: './src/app/index.jsx',
         vendor : [
             "react",
             "react-dom",
@@ -40,34 +40,32 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                use: extractCSS.extract([{
-                    loader:'css-loader',
-                    options:{
-                        minimize:true,
-                        sourceMap: false,
-                    }
-
-                }  ])
+                exclude: /^node_modules$/,
+                use: extractCSS.extract({
+                    fallback: "style-loader",
+                    use: [
+                        { loader: 'css-loader', options: { importLoaders: 1,minimize:true } },
+                    ]
+                })
             },
             {
-                test: /\.scss$/i,
-                use: extractSASS.extract([
-                    {
-                        loader:'css-loader',
-                        options:{
-                            minimize:true,
-                            sourceMap:false,
-                        }
-                    },
-                    'sass-loader' ])
+                test: /\.scss/,
+                exclude: /^node_modules$/,
+                use: extractSCSS.extract({
+                    fallback: "style-loader",
+                    use: [
+                        { loader: 'css-loader', options: { importLoaders: 1,minimize:true } },
+                        { loader: 'sass-loader'}
+                    ]
+                })
             },
             {
-                test: /\.js$/,
+                test: /\.(js|jsx)$/,
                 exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: ['env','es2015', 'react'],
+                        presets: ['env', 'react'],
 
                     }
                 }
@@ -87,7 +85,7 @@ module.exports = {
                   $: 'jquery'
         }),
         extractCSS,
-        extractSASS
+        extractSCSS
     ]
 }
 
